@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ check_type }} Report - CR: {{ cr_number }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        .meta-info { margin-bottom: 20px; color: #666; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #007bff; color: white; text-align: left; padding: 12px; }
+        td { padding: 12px; border-bottom: 1px solid #dee2e6; vertical-align: top; }
+        tr:hover { background-color: #f1f1f1; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; background-color: #e9ecef; }
+        pre { margin: 0; font-family: 'Courier New', Courier, monospace; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🚀 {{ check_type }} System Report</h2>
+        <div class="meta-info">
+            <strong>Change Request:</strong> {{ cr_number }}<br>
+            <strong>Generated On:</strong> {{ ansible_date_time.date }} {{ ansible_date_time.time }}<br>
+            <strong>Executed By:</strong> {{ lookup('env', 'USER') }}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Hostname</th>
+                    <th>System Metrics & Health Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for host in groups['target_servers'] %}
+                <tr>
+                    <td><strong>{{ host }}</strong></td>
+                    <td>
+                        <pre>{{ hostvars[host]['health_snapshot']['stdout'] }}</pre>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

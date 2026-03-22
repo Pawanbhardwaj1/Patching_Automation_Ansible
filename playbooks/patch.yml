@@ -1,0 +1,33 @@
+---
+- name: Multi-OS Patching Playbook
+  hosts: target_servers
+  become: yes
+  tasks:
+    - name: Ensure Audit Log exists
+      file:
+        path: /var/log/patching_audit.log
+        state: touch
+        mode: '0644'
+    - name: Patch RHEL/Rocky/CentOS Family
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Patch Debian/Ubuntu Family
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    - name: Patch SUSE Family
+      community.general.zypper:  # Changed from 'zypper' to 'community.general.zypper'
+        name: "*"
+        state: dist-upgrade
+      when: ansible_os_family == "Suse"
+
+    - name: Record Patching in Local Log
+      lineinfile:
+        path: /var/log/patching_audit.log
+        line: "Patched on {{ ansible_date_time.date }} for CR: {{ cr_number }}"
+        create: yes

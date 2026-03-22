@@ -1,0 +1,25 @@
+---
+- name: System Health Check Snapshot
+  hosts: target_servers
+  become: yes
+  tasks:
+    - name: Capture Metrics
+      shell: |
+        echo "uptime: $(uptime -p)"
+        echo "disk_usage: $(df -h / | awk 'NR==2 {print $5}')"
+        if command -v dnf &>/dev/null; then echo "pkg_count: $(dnf list installed | wc -l)";
+        elif command -v apt-get &>/dev/null; then echo "pkg_count: $(dpkg -l | wc -l)"; fi
+      register: health_snapshot
+
+    - name: Save Snapshot
+      delegate_to: localhost
+      copy:
+        dest: "{{ snapshot_dir }}/{{ inventory_hostname }}_{{ check_type }}.json"
+        content: "{{ health_snapshot.stdout_lines | to_nice_json }}"
+
+    - name: Generate HTML Report
+      delegate_to: localhost
+      run_once: true
+      template:
+        src: /home/ansible/template/report_template.j2
+        dest: "{{ report_path }}"
